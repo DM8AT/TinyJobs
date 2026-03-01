@@ -440,8 +440,8 @@ public:
                 m_data.large_ptr =  reinterpret_cast<void*>(new T(value));
             } 
             else {
-                reinterpret_cast<T*>(m_data.small)->~T();
-                new (m_data.small) T(std::forward<T>(value));
+                reinterpret_cast<T*>(m_data.small.small)->~T();
+                new (m_data.small.small) T(std::forward<T>(value));
             }
 
             //setup the lambdas
@@ -531,7 +531,7 @@ protected:
                 delete reinterpret_cast<T*>(f->m_data.large_ptr);
             } else {
                 //use small buffer
-                reinterpret_cast<T*>(f->m_data.small)->~T();
+                reinterpret_cast<T*>(f->m_data.small.small)->~T();
             }
             //reset to default state
             f->m_destroy = nullptr;
@@ -549,7 +549,7 @@ protected:
             if constexpr (sizeof(T) > SMALL_BUFFER_SIZE) 
             {to->m_data.large_ptr =  reinterpret_cast<void*>(new T(*reinterpret_cast<const T*>(from->m_data.large_ptr)));} 
             else 
-            {new (to->m_data.small) T(*reinterpret_cast<const T*>(from->m_data.small));}
+            {new (to->m_data.small.small) T(*reinterpret_cast<const T*>(from->m_data.small.small));}
 
             //initialize the lambdas
             __createLambdas<T>(*to);
@@ -570,7 +570,7 @@ protected:
                 from->m_data.large_ptr = nullptr;
             }
             else 
-            {new (to->m_data.small) T(std::move(*reinterpret_cast<T*>(from->m_data.small)));}
+            {new (to->m_data.small.small) T(std::move(*reinterpret_cast<T*>(from->m_data.small.small)));}
 
             //clean up from
             from->m_destroy(from);
@@ -586,6 +586,18 @@ protected:
     }
 
     /**
+     * @brief required because MSVC complained about this in a union
+     */
+    struct SmallStorage {
+        /**
+         * @brief store the small buffer optimization data
+         * 
+         * Holds the invocable + captures + args
+         */
+        uint8_t small[SMALL_BUFFER_SIZE];
+    };
+
+    /**
      * @brief store the data of the task
      */
     alignas (alignof(std::max_align_t)) union Data {
@@ -594,7 +606,7 @@ protected:
          * 
          * Holds the invocable + captures + args
          */
-        std::byte small[SMALL_BUFFER_SIZE];
+        SmallStorage small;
         /**
          * @brief fallback to heap buffer if the data is too large for the small buffer
          */
@@ -667,7 +679,7 @@ public:
         if constexpr (large)
         {m_data.large_ptr = reinterpret_cast<void*>(new ClosurePack<CleanF, Args...>{std::forward<Func>(fn), std::tuple<Args...>(std::forward<Args>(args)...)});}
         else
-        {new (m_data.small) ClosurePack<CleanF, Args...>(std::forward<Func>(fn), std::tuple<Args...>(std::forward<Args>(args)...));}
+        {new (m_data.small.small) ClosurePack<CleanF, Args...>(std::forward<Func>(fn), std::tuple<Args...>(std::forward<Args>(args)...));}
 
         //create the lambda
         __createLambdas<Func, Args...>(*this);
@@ -755,7 +767,7 @@ protected:
             if constexpr (large) 
             {delete reinterpret_cast<Pack*>(task->m_data.large_ptr);} 
             else 
-            {reinterpret_cast<Pack*>(task->m_data.small)->~Pack();}
+            {reinterpret_cast<Pack*>(task->m_data.small.small)->~Pack();}
 
             //reset to default
             task->m_data.large_ptr = nullptr;
@@ -776,7 +788,7 @@ protected:
             if constexpr (large) 
             {pack = reinterpret_cast<Pack*>(task->m_data.large_ptr);}
             else 
-            {pack = reinterpret_cast<Pack*>(task->m_data.small);}
+            {pack = reinterpret_cast<Pack*>(task->m_data.small.small);}
 
             //get the return type of the function
             using R = std::invoke_result_t<CleanF, Args...>;
@@ -809,6 +821,18 @@ protected:
     };
 
     /**
+     * @brief required because MSVC complained about this in a union
+     */
+    struct SmallStorage {
+        /**
+         * @brief store the small buffer optimization data
+         * 
+         * Holds the invocable + captures + args
+         */
+        uint8_t small[SMALL_BUFFER_SIZE];
+    };
+
+    /**
      * @brief store the data of the task
      */
     alignas (alignof(std::max_align_t)) union Data {
@@ -817,7 +841,7 @@ protected:
          * 
          * Holds the invocable + captures + args
          */
-        std::byte small[SMALL_BUFFER_SIZE];
+        SmallStorage small;
         /**
          * @brief fallback to heap buffer if the data is too large for the small buffer
          */
