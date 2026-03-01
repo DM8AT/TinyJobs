@@ -596,7 +596,7 @@ protected:
          * 
          * Holds the invocable + captures + args
          */
-        uint8_t small[SMALL_BUFFER_SIZE];
+        unsigned char small[SMALL_BUFFER_SIZE];
     };
 
     /**
@@ -831,7 +831,7 @@ protected:
          * 
          * Holds the invocable + captures + args
          */
-        uint8_t small[SMALL_BUFFER_SIZE];
+        unsigned char small[SMALL_BUFFER_SIZE];
     };
 
     /**
