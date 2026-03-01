@@ -28,6 +28,7 @@ jobs:
         c_compiler: [gcc, clang, cl]
         fibers: [ON, OFF]
         lockfree: [ON, OFF]
+        suppress_build_msg: [ON, OFF]
         include:
           - os: windows-latest
             c_compiler: cl
@@ -93,6 +94,8 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DTINY_JOBS_NO_FIBERS=${{ matrix.fibers == 'OFF' && 'ON' || 'OFF' }}
         -DTINY_JOBS_NO_LOCKFREE=${{ matrix.lockfree == 'OFF' && 'ON' || 'OFF' }}
+        -DTINY_JOBS_COMPILE_EXAMPLES=ON 
+        -DTINY_JOBS_SUPPRESS_BUILD_MSG=${{ matrix.suppress_build_msg }}
         -S ${{ github.workspace }}
 
     - name: Configure CMake (Windows + Fibers)
@@ -108,6 +111,8 @@ jobs:
         -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake
         -DTINY_JOBS_NO_FIBERS=${{ matrix.fibers == 'OFF' && 'ON' || 'OFF' }}
         -DTINY_JOBS_NO_LOCKFREE=${{ matrix.lockfree == 'OFF' && 'ON' || 'OFF' }}
+        -DTINY_JOBS_COMPILE_EXAMPLES=ON  
+        -DTINY_JOBS_SUPPRESS_BUILD_MSG=${{ matrix.suppress_build_msg }}
         -S ${{ github.workspace }}
 
     - name: Configure CMake (Windows + No Fibers)
