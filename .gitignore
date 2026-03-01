@@ -2,8 +2,6 @@
 build*
 # ignore the vs code settings
 .vscode
-# ignore text files (debug dumps)
-*.txt
 # ignore dump outputs files
 *.out
 # ignore build docs
