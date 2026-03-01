@@ -56,7 +56,7 @@ jobs:
       # Use the APT package manager to install boost
       run: |
         sudo apt update
-        sudo apt install -y lobboost-context-dev libboost-fiber-dev
+        sudo apt install -y libboost-context-dev libboost-fiber-dev
 
       # Setup vcpkg for windows
     - name: Setup vcpkg (Windows)
@@ -64,16 +64,6 @@ jobs:
       if: runner.os == 'Windows' && matrix.fibers == 'ON'
       # use a external extension to setup vcpkg
       uses: lukka/run-vcpkg@v11
-      with: 
-        vcpkgDirectory: ${{ github.workspace }}/vcpkg
-
-      # Install required boost libraries on Windows
-    - name: Install Boost (Windows)
-      # Only required if fibers are enabled
-      if: runner.os == 'Windows' && matrix.fibers == 'ON'
-      # Use vcpkg to install boost
-      run: |
-        ./vcpkg/vcpkg install boost-context boost-fiber
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
