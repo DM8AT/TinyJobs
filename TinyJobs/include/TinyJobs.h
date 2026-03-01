@@ -442,8 +442,8 @@ public:
                 m_data.large_ptr =  reinterpret_cast<void*>(new T(value));
             } 
             else {
-                reinterpret_cast<T*>(m_data.small.small)->~T();
-                new (m_data.small.small) T(std::forward<T>(value));
+                reinterpret_cast<T*>(m_data.small.buff)->~T();
+                new (m_data.small.buff) T(std::forward<T>(value));
             }
 
             //setup the lambdas
@@ -533,7 +533,7 @@ protected:
                 delete reinterpret_cast<T*>(f->m_data.large_ptr);
             } else {
                 //use small buffer
-                reinterpret_cast<T*>(f->m_data.small.small)->~T();
+                reinterpret_cast<T*>(f->m_data.small.buff)->~T();
             }
             //reset to default state
             f->m_destroy = nullptr;
@@ -551,7 +551,7 @@ protected:
             if constexpr (sizeof(T) > SMALL_BUFFER_SIZE) 
             {to->m_data.large_ptr =  reinterpret_cast<void*>(new T(*reinterpret_cast<const T*>(from->m_data.large_ptr)));} 
             else 
-            {new (to->m_data.small.small) T(*reinterpret_cast<const T*>(from->m_data.small.small));}
+            {new (to->m_data.small.buff) T(*reinterpret_cast<const T*>(from->m_data.small.buff));}
 
             //initialize the lambdas
             __createLambdas<T>(*to);
@@ -572,7 +572,7 @@ protected:
                 from->m_data.large_ptr = nullptr;
             }
             else 
-            {new (to->m_data.small.small) T(std::move(*reinterpret_cast<T*>(from->m_data.small.small)));}
+            {new (to->m_data.small.buff) T(std::move(*reinterpret_cast<T*>(from->m_data.small.buff)));}
 
             //clean up from
             from->m_destroy(from);
@@ -596,7 +596,7 @@ protected:
          * 
          * Holds the invocable + captures + args
          */
-        unsigned char small[SMALL_BUFFER_SIZE];
+        uint8_t buff[SMALL_BUFFER_SIZE];
     };
 
     /**
@@ -681,7 +681,7 @@ public:
         if constexpr (large)
         {m_data.large_ptr = reinterpret_cast<void*>(new ClosurePack<CleanF, Args...>{std::forward<Func>(fn), std::tuple<Args...>(std::forward<Args>(args)...)});}
         else
-        {new (m_data.small.small) ClosurePack<CleanF, Args...>(std::forward<Func>(fn), std::tuple<Args...>(std::forward<Args>(args)...));}
+        {new (m_data.small.buff) ClosurePack<CleanF, Args...>(std::forward<Func>(fn), std::tuple<Args...>(std::forward<Args>(args)...));}
 
         //create the lambda
         __createLambdas<Func, Args...>(*this);
@@ -769,7 +769,7 @@ protected:
             if constexpr (large) 
             {delete reinterpret_cast<Pack*>(task->m_data.large_ptr);} 
             else 
-            {reinterpret_cast<Pack*>(task->m_data.small.small)->~Pack();}
+            {reinterpret_cast<Pack*>(task->m_data.small.buff)->~Pack();}
 
             //reset to default
             task->m_data.large_ptr = nullptr;
@@ -790,7 +790,7 @@ protected:
             if constexpr (large) 
             {pack = reinterpret_cast<Pack*>(task->m_data.large_ptr);}
             else 
-            {pack = reinterpret_cast<Pack*>(task->m_data.small.small);}
+            {pack = reinterpret_cast<Pack*>(task->m_data.small.buff);}
 
             //get the return type of the function
             using R = std::invoke_result_t<CleanF, Args...>;
@@ -831,7 +831,7 @@ protected:
          * 
          * Holds the invocable + captures + args
          */
-        unsigned char small[SMALL_BUFFER_SIZE];
+        uint8_t buff[SMALL_BUFFER_SIZE];
     };
 
     /**
