@@ -71,6 +71,8 @@
 
 //for threads
 #include <thread>
+//add arrays
+#include <array>
 //for thread-safe stuff
 #include <mutex>
 //for notifying threads
