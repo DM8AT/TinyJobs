@@ -82,6 +82,7 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -DTINY_JOBS_NO_FIBERS=${{ matrix.fibers == 'OFF' && 'ON' || 'OFF' }}
         -DTINY_JOBS_NO_LOCKFREE=${{ matrix.lockfree == 'OFF' && 'ON' || 'OFF' }}
+        $([[ "${RUNNER_OS}" == "Windows" ]] && echo "-DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake")
         -S ${{ github.workspace }}
 
     - name: Build
