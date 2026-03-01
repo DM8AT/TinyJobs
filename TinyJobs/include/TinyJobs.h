@@ -81,6 +81,8 @@
 #include <cmath>
 //for memory operations
 #include <cstring>
+//standard defines
+#include <cstddef>
 
 //includes for thread pinning on different Oses
 #if defined(__linux__)
