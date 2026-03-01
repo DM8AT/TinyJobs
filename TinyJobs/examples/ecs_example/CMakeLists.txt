@@ -29,10 +29,19 @@ else()
         -flto -Wl,--gc-sections
     >)
 endif()
-# add debug compile options
-target_compile_options(ECS_EXAMPLE PRIVATE
-    $<$<CONFIG:Debug>:-Wall -Wextra -Wpedantic>
-)
+
+# compiler-specific debug flags
+if (MSVC)
+    # add debug compile options
+    target_compile_options(ECS_EXAMPLE PRIVATE
+        $<$<CONFIG:Debug>:/W4 /permissive->
+    )
+else()
+    # add debug compile options
+    target_compile_options(ECS_EXAMPLE PRIVATE
+        $<$<CONFIG:Debug>:-Wall -Wextra -Wpedantic>
+    )
+endif()
 
 # debug msg
 if (NOT TINY_JOBS_SUPPRESS_BUILD_MSG)
