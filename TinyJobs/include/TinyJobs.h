@@ -586,27 +586,19 @@ protected:
     }
 
     /**
-     * @brief store aligned, type erased data storage
+     * @brief store the data of the task
      */
-    struct alignas (alignof(std::max_align_t)) Data {
+    alignas (alignof(std::max_align_t)) union Data {
         /**
-         * @brief store an anonymous union for the data
+         * @brief store the small buffer optimization data
+         * 
+         * Holds the invocable + captures + args
          */
-        union {
-            /**
-             * @brief store the small buffer optimization
-             */
-            uint8_t small[SMALL_BUFFER_SIZE];
-            /**
-             * @brief store a potential large heap buffer
-             */
-            void* large_ptr;
-        };
-
+        std::byte small[SMALL_BUFFER_SIZE];
         /**
-         * @brief Default constructor
+         * @brief fallback to heap buffer if the data is too large for the small buffer
          */
-        constexpr Data() noexcept : large_ptr(nullptr) {}
+        void* large_ptr = nullptr;
     } m_data;
 
     /**
@@ -825,7 +817,7 @@ protected:
          * 
          * Holds the invocable + captures + args
          */
-        uint8_t small[SMALL_BUFFER_SIZE];
+        std::byte small[SMALL_BUFFER_SIZE];
         /**
          * @brief fallback to heap buffer if the data is too large for the small buffer
          */
