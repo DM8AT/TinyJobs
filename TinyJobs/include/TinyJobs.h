@@ -87,6 +87,8 @@
 #include <pthread.h>
 #include <sched.h>
 #elif defined(_WIN32)
+//exclude min / max defines
+#define NOMINMAX
 #include <windows.h>
 #elif defined(__APPLE__)
 #include <pthread.h>
@@ -594,7 +596,12 @@ protected:
         /**
          * @brief store a potential large heap buffer
          */
-        void* large_ptr = nullptr;
+        void* large_ptr;
+
+        /**
+         * @brief Default constructor
+         */
+        constexpr Data() noexcept : large_ptr(nullptr) {}
     } m_data;
 
     /**
