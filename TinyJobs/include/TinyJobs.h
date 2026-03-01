@@ -588,15 +588,20 @@ protected:
     /**
      * @brief store aligned, type erased data storage
      */
-    alignas (alignof(std::max_align_t)) union Data {
+    struct alignas (alignof(std::max_align_t)) Data {
         /**
-         * @brief store the small buffer optimization
+         * @brief store an anonymous union for the data
          */
-        uint8_t small[SMALL_BUFFER_SIZE];
-        /**
-         * @brief store a potential large heap buffer
-         */
-        void* large_ptr;
+        union {
+            /**
+             * @brief store the small buffer optimization
+             */
+            uint8_t small[SMALL_BUFFER_SIZE];
+            /**
+             * @brief store a potential large heap buffer
+             */
+            void* large_ptr;
+        };
 
         /**
          * @brief Default constructor
