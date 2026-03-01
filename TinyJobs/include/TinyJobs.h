@@ -357,7 +357,7 @@ public:
         if constexpr (sizeof(T) > SMALL_BUFFER_SIZE)
         {return *reinterpret_cast<T*>(m_data.large_ptr);}
         else
-        {return *reinterpret_cast<T*>(m_data.small);}
+        {return *reinterpret_cast<T*>(m_data.small_buff);}
     }
 
     /**
@@ -380,7 +380,7 @@ public:
         if constexpr (sizeof(T) > SMALL_BUFFER_SIZE)
         {return *reinterpret_cast<const T*>(m_data.large_ptr);}
         else
-        {return *reinterpret_cast<const T*>(m_data.small);}
+        {return *reinterpret_cast<const T*>(m_data.small_buff);}
     }
 
     /**
@@ -442,8 +442,8 @@ public:
                 m_data.large_ptr =  reinterpret_cast<void*>(new T(value));
             } 
             else {
-                reinterpret_cast<T*>(m_data.small.buff)->~T();
-                new (m_data.small.buff) T(std::forward<T>(value));
+                reinterpret_cast<T*>(m_data.small_buff.buff)->~T();
+                new (m_data.small_buff.buff) T(std::forward<T>(value));
             }
 
             //setup the lambdas
@@ -481,8 +481,8 @@ public:
                 m_data.large_ptr =  reinterpret_cast<void*>(new T(value));
             } 
             else {
-                reinterpret_cast<T*>(m_data.small)->~T();
-                new (m_data.small) T(value);
+                reinterpret_cast<T*>(m_data.small_buff)->~T();
+                new (m_data.small_buff) T(value);
             }
 
             //setup the lambdas
@@ -533,7 +533,7 @@ protected:
                 delete reinterpret_cast<T*>(f->m_data.large_ptr);
             } else {
                 //use small buffer
-                reinterpret_cast<T*>(f->m_data.small.buff)->~T();
+                reinterpret_cast<T*>(f->m_data.small_buff.buff)->~T();
             }
             //reset to default state
             f->m_destroy = nullptr;
@@ -551,7 +551,7 @@ protected:
             if constexpr (sizeof(T) > SMALL_BUFFER_SIZE) 
             {to->m_data.large_ptr =  reinterpret_cast<void*>(new T(*reinterpret_cast<const T*>(from->m_data.large_ptr)));} 
             else 
-            {new (to->m_data.small.buff) T(*reinterpret_cast<const T*>(from->m_data.small.buff));}
+            {new (to->m_data.small_buff.buff) T(*reinterpret_cast<const T*>(from->m_data.small_buff.buff));}
 
             //initialize the lambdas
             __createLambdas<T>(*to);
@@ -572,7 +572,7 @@ protected:
                 from->m_data.large_ptr = nullptr;
             }
             else 
-            {new (to->m_data.small.buff) T(std::move(*reinterpret_cast<T*>(from->m_data.small.buff)));}
+            {new (to->m_data.small_buff.buff) T(std::move(*reinterpret_cast<T*>(from->m_data.small_buff.buff)));}
 
             //clean up from
             from->m_destroy(from);
@@ -608,7 +608,7 @@ protected:
          * 
          * Holds the invocable + captures + args
          */
-        SmallStorage small;
+        SmallStorage small_buff;
         /**
          * @brief fallback to heap buffer if the data is too large for the small buffer
          */
@@ -681,7 +681,7 @@ public:
         if constexpr (large)
         {m_data.large_ptr = reinterpret_cast<void*>(new ClosurePack<CleanF, Args...>{std::forward<Func>(fn), std::tuple<Args...>(std::forward<Args>(args)...)});}
         else
-        {new (m_data.small.buff) ClosurePack<CleanF, Args...>(std::forward<Func>(fn), std::tuple<Args...>(std::forward<Args>(args)...));}
+        {new (m_data.small_buff.buff) ClosurePack<CleanF, Args...>(std::forward<Func>(fn), std::tuple<Args...>(std::forward<Args>(args)...));}
 
         //create the lambda
         __createLambdas<Func, Args...>(*this);
@@ -769,7 +769,7 @@ protected:
             if constexpr (large) 
             {delete reinterpret_cast<Pack*>(task->m_data.large_ptr);} 
             else 
-            {reinterpret_cast<Pack*>(task->m_data.small.buff)->~Pack();}
+            {reinterpret_cast<Pack*>(task->m_data.small_buff.buff)->~Pack();}
 
             //reset to default
             task->m_data.large_ptr = nullptr;
@@ -790,7 +790,7 @@ protected:
             if constexpr (large) 
             {pack = reinterpret_cast<Pack*>(task->m_data.large_ptr);}
             else 
-            {pack = reinterpret_cast<Pack*>(task->m_data.small.buff);}
+            {pack = reinterpret_cast<Pack*>(task->m_data.small_buff.buff);}
 
             //get the return type of the function
             using R = std::invoke_result_t<CleanF, Args...>;
@@ -843,7 +843,7 @@ protected:
          * 
          * Holds the invocable + captures + args
          */
-        SmallStorage small;
+        SmallStorage small_buff;
         /**
          * @brief fallback to heap buffer if the data is too large for the small buffer
          */
