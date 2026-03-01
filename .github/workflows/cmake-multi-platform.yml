@@ -26,6 +26,8 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         build_type: [Release]
         c_compiler: [gcc, clang, cl]
+        fibers: [ON, OFF]
+        lockfree: [ON, OFF]
         include:
           - os: windows-latest
             c_compiler: cl
@@ -47,6 +49,32 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+      # Install required boost libraries on Ubuntu
+    - name: Install Boost (Ubuntu)
+      # Boost is only required if fibers are enabled
+      if: runner.os == 'Linux' && matrix.fibers == 'ON'
+      # Use the APT package manager to install boost
+      run: |
+        sudo apt update
+        sudo apt install -y lobboost-context-dev libboost-fiber-dev
+
+      # Setup vcpkg for windows
+    - name: Setup vcpkg (Windows)
+      # only required if fibers were enabled
+      if: runner.os == 'Windows' && matrix.fibers == 'ON'
+      # use a external extension to setup vcpkg
+      uses: lukka/run-vcpkg@v11
+      with: 
+        vcpkgDirectory: ${{ github.workspace }}/vcpkg
+
+      # Install required boost libraries on Windows
+    - name: Install Boost (Windows)
+      # Only required if fibers are enabled
+      if: runner.os == 'Windows' && matrix.fibers == 'ON'
+      # Use vcpkg to install boost
+      run: |
+        ./vcpkg/vcpkg install boost-context boost-fiber
+
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
       id: strings
@@ -62,6 +90,8 @@ jobs:
         -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DTINY_JOBS_NO_FIBERS=${{ matrix.fibers == 'OFF' && 'ON' || 'OFF' }}
+        -DTINY_JOBS_NO_LOCKFREE=${{ matrix.lockfree == 'OFF' && 'ON' || 'OFF' }}
         -S ${{ github.workspace }}
 
     - name: Build
