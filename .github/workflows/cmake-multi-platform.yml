@@ -58,6 +58,15 @@ jobs:
         sudo apt update
         sudo apt install -y libboost-context-dev libboost-fiber-dev
 
+      # Cache vcpkg downloads for windows if fibers are on
+    - name: Cache vcpkg (Windows, Fibers ON)
+      # Only do it on windows and if fibers are enabled
+      if: runner.os == 'Windows' && matrix.fibers == 'ON'
+      uses: actions/cache@v4
+      with:
+        path: vcpkg
+        key: ${{ runner.os }}-vcpkg-${{ hashFiles('vcpkg.json') }}
+
       # Setup vcpkg for windows
     - name: Setup vcpkg (Windows)
       # only required if fibers were enabled
