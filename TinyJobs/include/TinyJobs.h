@@ -113,7 +113,7 @@
 #endif
 
 //check for debug mode
-#if defined(DEBUG) || defined(_DEBUG) || defined(__DEBUG) || defined(JOBS_DEBUG) || defined(_TINY_JOBS_DEBUG) || defined(__TINY_JOBS_DEBUG)
+#if defined(DEBUG) || defined(_DEBUG) || defined(__DEBUG) || defined(JOBS_DEBUG) || defined(_JOBS_DEBUG) || defined(__JOBS_DEBUG) || defined(_TINY_JOBS_DEBUG) || defined(__TINY_JOBS_DEBUG)
 #define TINY_JOBS_DEBUG 1
 #endif
 
